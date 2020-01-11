@@ -1,7 +1,7 @@
-body{
-  font-family: source-code-pro, sans-serif;
-  color:#F9F9F9;
-  background-color: #212121
+body {
+  /* font-family: source-code-pro, sans-serif; */
+  color: #f9f9f9;
+  background-color: #212121;
 }
 
 #r3d {
@@ -13,14 +13,14 @@ body{
   position: absolute;
   width: 100%;
   height: 100%;
-  overflow:hidden;
+  overflow: hidden;
 }
 
 #my-gui-container {
   position: fixed;
   top: 30px;
   right: 20px;
-  z-index:1;
+  z-index: 1;
 }
 
 #my-lut-container {
@@ -28,7 +28,7 @@ body{
   left: 50%;
   transform: translate(-50%, 0);
   z-index: 1;
-  color: #F9F9F9;
+  color: #f9f9f9;
   text-align: center;
 }
 
@@ -49,7 +49,13 @@ body{
 }
 
 #my-lut-container > div > .my-tf > :first-child {
-  background: repeating-linear-gradient(-45deg, #353535, #353535 5px, black 5px, black 10px);
+  background: repeating-linear-gradient(
+    -45deg,
+    #353535,
+    #353535 5px,
+    black 5px,
+    black 10px
+  );
 }
 
 #my-lut-container > div > .my-tf > :nth-child(2) {
