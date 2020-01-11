@@ -22,3 +22,12 @@ body {
   right: 10px;
   z-index: 1;
 }
+
+/*------------ Header ------------*/
+.mn-icon:hover {
+  background-color: #4b4b4b;
+}
+/*------------ Index ------------*/
+.left-panel {
+  background-color: #292929;
+}
