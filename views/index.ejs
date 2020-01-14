@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <!-- Bootstrap start -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <!-- Bootstrap end -->
+    <!-- Javascript ami start -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.3/dat.gui.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/three@latest/build/three.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/ami.js@next/build/ami.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/three@latest/examples/js/loaders/STLLoader.js"></script>
+    <!-- Javascript ami end -->
+    <!-- CSS start -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- CSS end -->
+    <!-- Font awesome start -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"
+    />
+    <!-- Font awesome end -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="index.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark p-0">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#header"
+        aria-controls="header"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse " id="header">
+        <div class="mr-auto">
+          <ul class="navbar-nav mt-2 mt-lg-0">
+            <li class="nav-item mn-icon">
+              <button class="btn btn-dark" name="upload" id="upload">
+              <span class="nav-link text-white">
+                <i class="fa fa-upload"></i>
+                Upload files
+              </span>
+            </button>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle text-white"
+                href="#"
+                id="mnMenu"
+                role="button"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                Menu
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <input  type="file" multiple="" id="file"></input>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="ml-auto">
+          <ul class="navbar-nav mt-2 mt-lg-0">
+            <li class="nav-item mn-icon px-1">
+              <a class="nav-link" href="#">Ico 1</a>
+            </li>
+            <li class="nav-item mn-icon px-1">
+              <a class="nav-link" href="#">Ico 2</a>
+            </li>
+            <li class="nav-item mn-icon px-1">
+              <a class="nav-link" href="#">Ico 3</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="d-flex">
+      <div class="col-sm-2 left-panel d-flex">
+        <div id="container1" class="border"  style="width:220px; height: 120px; margin-left: 5px; margin-top: 40px">
+          <div  style="width:50px; height: 50px; margin-left: 20px"id="contain" >FileDICOM Number:1/15</div>
+          <!-- <div class="border" style="width:60px; height: 60px" ></div>
+          <div class="border" style="width:60px; height: 60px" >File</div>
+          
+          <div class="border" style="width:60px; height: 60px">File</div>
+          <div class="border" style="width:60px; height: 60px">File</div>
+          <div class="border" style="width:60px; height: 60px">File</div>
+          <div class="border" style="width:60px; height: 60px">File</div> -->
+        </div>
+        <!-- <div class="d-flex align-content-start flex-wrap border" style="width:150px; height: 500px" id="container2"></div> -->
+      </div>
+     
+      <div class="col-sm-10 p-0">
+        <div class="d-flex" style="min-height: 45vh">
+         
+          <div class="col-sm-6 border">
+            <div class="row">
+              <div class="col-sm-6" id="my-gui-container"></div>
+              </div>
+              <div class="row">
+              <div class="col-sm-6 " id="container"></div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 border">Image 2</div>
+        </div>
+        <div class="d-flex" style="min-height: 45vh">
+          <div class="col-sm-6 border">Image 3</div>
+          <div class="col-sm-6 border">Image 4</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,19 +1,19 @@
-const files = [
-  'image-000001.dcm',
-  'image-000002.dcm',
-  'image-000003.dcm',
-  'image-000004.dcm',
-  'image-000005.dcm',
-  'image-000006.dcm',
-  'image-000007.dcm',
-  'image-000008.dcm',
-  'image-000009.dcm',
-  'image-000010.dcm',
-  'image-000011.dcm',
-  'image-000012.dcm',
-  'image-000013.dcm',
-  'image-000014.dcm',
-  'image-000015.dcm',
+const fileall = [
+  // 'image-000001.dcm',
+  // 'image-000002.dcm',
+  // 'image-000003.dcm',
+  // 'image-000004.dcm',
+  // 'image-000005.dcm',
+  // 'image-000006.dcm',
+  // 'image-000007.dcm',
+  // 'image-000008.dcm',
+  // 'image-000009.dcm',
+  // 'image-000010.dcm',
+  // 'image-000011.dcm',
+  // 'image-000012.dcm',
+  // 'image-000013.dcm',
+  // 'image-000014.dcm',
+  // 'image-000015.dcm',
 ];
 
 
@@ -23,11 +23,16 @@ const colors = {
   blue: 0x0000ff,
   darkGrey: 0x353535,
 };
-
 // import { colors, files } from './utils';
 
-
-// Classic ThreeJS setup
+$(document).ready(function(){
+$("#upload").click(function(){
+  var input = $("#file")[0].files; 
+  console.log(input);
+  for(i = 0; i < input.length ;i++){
+       fileall.push(input[i].name);
+  }
+  // Setup renderer
 const container = document.getElementById('container');
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -39,50 +44,73 @@ container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-  45,
-  container.offsetWidth / container.offsetHeight,
+const camera = new AMI.OrthographicCamera(
+  container.clientWidth / -2,
+  container.clientWidth / 2,
+  container.clientHeight / 2,
+  container.clientHeight / -2,
   0.1,
-  1000
+  10000
 );
-camera.position.x = 150;
-camera.position.y = 150;
-camera.position.z = 100;
 
-const controls = new AMI.TrackballControl(camera, container);
+// Setup controls
+const controls = new AMI.TrackballOrthoControl(camera, container);
+controls.staticMoving = true;
+controls.noRotate = true;
+camera.controls = controls;
 
 const onWindowResize = () => {
-  camera.aspect = container.offsetWidth / container.offsetHeight;
-  camera.updateProjectionMatrix();
+  camera.canvas = {
+    width: container.offsetWidth,
+    height: container.offsetHeight,
+  };
+  camera.fitBox(2);
 
   renderer.setSize(container.offsetWidth, container.offsetHeight);
 };
-
 window.addEventListener('resize', onWindowResize, false);
 
-// Load DICOM images and create AMI Helpers
 const loader = new AMI.VolumeLoader(container);
 loader
-  .load(files)
+  .load(fileall)
   .then(() => {
     const series = loader.data[0].mergeSeries(loader.data);
     const stack = series[0].stack[0];
     loader.free();
 
     const stackHelper = new AMI.StackHelper(stack);
-    stackHelper.bbox.color = colors.red;
-    stackHelper.border.color = colors.blue;
-
+    stackHelper.bbox.visible = false;
+    stackHelper.border.color = colors.red;
     scene.add(stackHelper);
 
-    // build the gui
     gui(stackHelper);
 
     // center camera and interactor to center of bouding box
-    const centerLPS = stackHelper.stack.worldCenter();
-    camera.lookAt(centerLPS.x, centerLPS.y, centerLPS.z);
-    camera.updateProjectionMatrix();
-    controls.target.set(centerLPS.x, centerLPS.y, centerLPS.z);
+    // for nicer experience
+    // set camera
+    const worldbb = stack.worldBoundingBox();
+    const lpsDims = new THREE.Vector3(
+      worldbb[1] - worldbb[0],
+      worldbb[3] - worldbb[2],
+      worldbb[5] - worldbb[4]
+    );
+
+    const box = {
+      center: stack.worldCenter().clone(),
+      halfDimensions: new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10),
+    };
+
+    // init and zoom
+    const canvas = {
+      width: container.clientWidth,
+      height: container.clientHeight,
+    };
+
+    camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
+    camera.box = box;
+    camera.canvas = canvas;
+    camera.update();
+    camera.fitBox(2);
   })
   .catch(error => {
     window.console.log('oops... something went wrong...');
@@ -93,61 +121,174 @@ const animate = () => {
   controls.update();
   renderer.render(scene, camera);
 
-  requestAnimationFrame(() => {
+  requestAnimationFrame(function() {
     animate();
   });
 };
+
 animate();
 
-// setup gui
 const gui = stackHelper => {
-  const stack = stackHelper.stack;
   const gui = new dat.GUI({
     autoPlace: false,
   });
+
   const customContainer = document.getElementById('my-gui-container');
   customContainer.appendChild(gui.domElement);
+  const camUtils = {
+    invertRows: false,
+    invertColumns: false,
+    rotate45: false,
+    rotate: 0,
+    orientation: 'default',
+    convention: 'radio',
+  };
 
-  // stack
-  const stackFolder = gui.addFolder('Stack');
-  // index range depends on stackHelper orientation.
-  const index = stackFolder
-    .add(stackHelper, 'index', 0, stack.dimensionsIJK.z - 1)
-    .step(1)
-    .listen();
-  const orientation = stackFolder
-    .add(stackHelper, 'orientation', 0, 2)
-    .step(1)
-    .listen();
-  orientation.onChange(value => {
-    index.__max = stackHelper.orientationMaxIndex;
-    stackHelper.index = Math.floor(index.__max / 2);
+  // camera
+  const cameraFolder = gui.addFolder('Camera');
+  const invertRows = cameraFolder.add(camUtils, 'invertRows');
+  invertRows.onChange(() => {
+    camera.invertRows();
   });
+
+  const invertColumns = cameraFolder.add(camUtils, 'invertColumns');
+  invertColumns.onChange(() => {
+    camera.invertColumns();
+  });
+
+  const rotate45 = cameraFolder.add(camUtils, 'rotate45');
+  rotate45.onChange(() => {
+    camera.rotate();
+  });
+
+  cameraFolder
+    .add(camera, 'angle', 0, 360)
+    .step(1)
+    .listen();
+
+  const orientationUpdate = cameraFolder.add(camUtils, 'orientation', [
+    'default',
+    'axial',
+    'coronal',
+    'sagittal',
+  ]);
+  orientationUpdate.onChange(value => {
+    camera.orientation = value;
+    camera.update();
+    camera.fitBox(2);
+    stackHelper.orientation = camera.stackOrientation;
+  });
+
+  const conventionUpdate = cameraFolder.add(camUtils, 'convention', ['radio', 'neuro']);
+  conventionUpdate.onChange(value => {
+    camera.convention = value;
+    camera.update();
+    camera.fitBox(2);
+  });
+
+  cameraFolder.open();
+
+  const stackFolder = gui.addFolder('Stack');
+  stackFolder
+    .add(stackHelper, 'index', 0, stackHelper.stack.dimensionsIJK.z - 1)
+    .step(1)
+    .listen();
+  stackFolder
+    .add(stackHelper.slice, 'interpolation', 0, 1)
+    .step(1)
+    .listen();
   stackFolder.open();
-
-  // slice
-  const sliceFolder = gui.addFolder('Slice');
-  sliceFolder
-    .add(stackHelper.slice, 'windowWidth', 1, stack.minMax[1] - stack.minMax[0])
-    .step(1)
-    .listen();
-  sliceFolder
-    .add(stackHelper.slice, 'windowCenter', stack.minMax[0], stack.minMax[1])
-    .step(1)
-    .listen();
-  sliceFolder.add(stackHelper.slice, 'intensityAuto').listen();
-  sliceFolder.add(stackHelper.slice, 'invert');
-  sliceFolder.open();
-
-  // bbox
-  const bboxFolder = gui.addFolder('Bounding Box');
-  bboxFolder.add(stackHelper.bbox, 'visible');
-  bboxFolder.addColor(stackHelper.bbox, 'color');
-  bboxFolder.open();
-
-  // border
-  const borderFolder = gui.addFolder('Border');
-  borderFolder.add(stackHelper.border, 'visible');
-  borderFolder.addColor(stackHelper.border, 'color');
-  borderFolder.open();
 };
+for(i = 0; i < input.length ;i++){
+  // fileall.push(input[i].name);
+const contain = document.getElementById('contain');
+var container1 = document.getElementById('container1');
+const renderer1 = new THREE.WebGLRenderer({
+  antialias: true,
+});
+
+renderer1.setSize(contain.offsetWidth, contain.offsetHeight);
+renderer1.setClearColor(colors.darkGrey, 1);
+renderer1.setPixelRatio(window.devicePixelRatio);
+container1.appendChild(renderer1.domElement);
+
+const scene = new THREE.Scene();
+
+const camera = new AMI.OrthographicCamera(
+  container.clientWidth / -2,
+  container.clientWidth / 2,
+  container.clientHeight / 2,
+  container.clientHeight / -2,
+  0.1,
+  10000
+);
+
+// Setup controls
+const controls = new AMI.TrackballOrthoControl(camera, container);
+controls.staticMoving = true;
+controls.noRotate = true;
+camera.controls = controls;
+
+const load = new AMI.VolumeLoader(contain);
+load
+  .load(input[i].name)
+  .then(() => {
+    const series = load.data[0].mergeSeries(load.data);
+    const stack = series[0].stack[0];
+    const stackHelper = new AMI.StackHelper(stack);
+    // const stackHelpernew = new AMI.StackHelper(stack);
+    stackHelper.bbox.visible = false;
+    stackHelper.border.color = colors.red;
+    scene.add(stackHelper);
+    load.free();
+    
+    // gui(stackHelper);
+    // center camera and interactor to center of bouding box
+    // for nicer experience
+    // set camera
+    
+    const worldbb = stack.worldBoundingBox();
+    const lpsDims = new THREE.Vector3(
+      worldbb[1] - worldbb[0],
+      worldbb[3] - worldbb[2],
+      worldbb[5] - worldbb[4],
+      worldbb[7] - worldbb[6]
+    );
+
+    const box = {
+      center: stack.worldCenter().clone(),
+      halfDimensions: new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10),
+    };
+
+    // init and zoom
+    const canvas = {
+      width: container.clientWidth,
+      height: container.clientHeight,
+    };
+
+    camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
+    camera.box = box;
+    camera.canvas = canvas;
+    camera.update();
+    camera.fitBox(2);
+  })
+  .catch(error => {
+    window.console.log('oops... something went wrong...');
+    window.console.log(error);
+  })
+
+  const animate = () => {
+  renderer1.render(scene, camera);
+  // renderer1.render(scene, camera);
+
+  requestAnimationFrame(function() {
+    animate();
+  });
+};
+
+animate();
+}
+});
+
+});
+
